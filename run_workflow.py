@@ -12,6 +12,29 @@ load_dotenv(Path(__file__).parent / ".env")
 ROOT = Path(__file__).parent
 sys.path.insert(0, str(ROOT / "src"))
 
+LOG_PATH = ROOT / "logs" / "workflow_last.log"
+
+
+class _Tee:
+    """Writes to multiple streams simultaneously (console + log file)."""
+    def __init__(self, *files):
+        self.files = files
+    def write(self, data):
+        for f in self.files:
+            try: f.write(data)
+            except Exception: pass
+    def flush(self):
+        for f in self.files:
+            try: f.flush()
+            except Exception: pass
+
+
+def _setup_log():
+    LOG_PATH.parent.mkdir(exist_ok=True)
+    fh = open(LOG_PATH, "w", encoding="utf-8")
+    sys.stdout = _Tee(sys.__stdout__, fh)
+    sys.stderr = _Tee(sys.__stderr__, fh)
+
 from asset_selector import select_best_asset, select_best_asset_local
 from backtester import backtest_all
 from data_fetcher import fetch_all, get_ohlcv
@@ -288,6 +311,7 @@ def main():
     parser.add_argument("--force-refresh", action="store_true", help="Re-descarga datos ignorando cache")
     parser.add_argument("--no-claude",     action="store_true", help="No usar Claude API (selección local)")
     args = parser.parse_args()
+    _setup_log()
     sys.exit(run(args))
 
 

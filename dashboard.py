@@ -731,6 +731,13 @@ with tab_ctrl:
                 st.session_state.workflow_was_alive = True
                 st.rerun()
 
+        # Log del último análisis
+        log_path = ROOT / "logs" / "workflow_last.log"
+        if log_path.exists():
+            log_text = log_path.read_text(encoding="utf-8", errors="replace")
+            with st.expander("📋 Ver log del último análisis", expanded=workflow_alive):
+                st.code(log_text, language=None)
+
         st.divider()
 
         # Emergency close
