@@ -118,13 +118,31 @@ def backtest_all(df: pd.DataFrame, strategies: list[Strategy],
 
     # Only LONG — spot Binance doesn't support margin shorting
     results = []
+    n_no_signal = 0
+    n_low_trades = 0
+    n_low_wr = 0
+    n_high_dd = 0
+
     for strat in strategies:
         res = run_backtest(df, strat, "long", capital)
         if res is None:
+            n_no_signal += 1
             continue
-        if (res["n_trades"] >= min_trades and
-                res["win_rate"] >= min_wr and
-                res["max_drawdown"] <= max_dd):
+        if res["n_trades"] < min_trades:
+            n_low_trades += 1
+        elif res["win_rate"] < min_wr:
+            n_low_wr += 1
+        elif res["max_drawdown"] > max_dd:
+            n_high_dd += 1
+        else:
             results.append(res)
+
+    total = len(strategies)
+    print(f"  Diagnóstico de filtros ({total} estrategias):")
+    print(f"    Sin señal / error:         {n_no_signal:>4}  ({n_no_signal/total:.0%})")
+    print(f"    Trades insuficientes (<{min_trades}): {n_low_trades:>4}  ({n_low_trades/total:.0%})")
+    print(f"    Win rate bajo (<{min_wr:.0%}):     {n_low_wr:>4}  ({n_low_wr/total:.0%})")
+    print(f"    Drawdown alto (>{max_dd:.0%}):    {n_high_dd:>4}  ({n_high_dd/total:.0%})")
+    print(f"    Pasaron todos los filtros:  {len(results):>4}")
 
     return results
