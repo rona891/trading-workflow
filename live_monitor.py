@@ -190,6 +190,8 @@ def run(dry_run: bool = False, ignore_hours: bool = False):
     print("Presioná Ctrl+C para detener\n")
 
     eod_notified = False
+    consecutive_fetch_errors = 0
+    FETCH_ERROR_ALERT_THRESHOLD = 10  # ~50 seg de fallos consecutivos antes de emailear
 
     try:
         while True:
@@ -245,9 +247,13 @@ def run(dry_run: bool = False, ignore_hours: bool = False):
                 try:
                     df = fetch_recent_ohlcv(asset, timeframe)
                     signal = check_entry_signal(df, strat)
+                    consecutive_fetch_errors = 0  # reset on success
                 except Exception as e:
+                    consecutive_fetch_errors += 1
                     print(f"Error al obtener datos: {e}")
-                    notify_error("live_monitor fetch", str(e))
+                    if consecutive_fetch_errors >= FETCH_ERROR_ALERT_THRESHOLD:
+                        notify_error("live_monitor fetch", f"[{consecutive_fetch_errors} fallos consecutivos] {e}")
+                        consecutive_fetch_errors = 0  # reset para no spamear
                     time.sleep(POLL_SECONDS)
                     continue
 
