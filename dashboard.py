@@ -24,6 +24,7 @@ ARG_TZ = timezone(timedelta(hours=-3))
 INITIAL_BALANCE = 10_000.0
 PID_MONITOR = ROOT / "bot_monitor.pid"
 PID_WORKFLOW = ROOT / "bot_workflow.pid"
+LAST_RUN    = ROOT / "last_run.json"
 
 st.set_page_config(
     page_title="TradingBot",
@@ -164,6 +165,15 @@ def friendly_strategy_name(raw_name: str) -> str:
 
 monitor_alive, monitor_pid = get_process_status(PID_MONITOR)
 workflow_alive, workflow_pid = get_process_status(PID_WORKFLOW)
+
+# Detectar cuando el workflow termina para mostrar toast
+if "workflow_was_alive" not in st.session_state:
+    st.session_state.workflow_was_alive = False
+workflow_just_finished = st.session_state.workflow_was_alive and not workflow_alive
+st.session_state.workflow_was_alive = workflow_alive
+
+last_run = load_json(LAST_RUN)
+
 binance = get_binance_balance()
 trade_data = load_trade_log()
 trades = trade_data.get("trades", [])
@@ -205,6 +215,15 @@ with col_btn:
         st.rerun()
 
 st.divider()
+
+# Toast: workflow recién terminado (detectado por transición de estado)
+if workflow_just_finished:
+    lr = load_json(LAST_RUN)
+    if lr and lr.get("status") == "ok":
+        st.toast("✅ Análisis completado — nueva estrategia lista. Podés iniciar el monitor.", icon="✅")
+    else:
+        err = (lr or {}).get("error", "error desconocido")
+        st.toast(f"⚠️ El análisis terminó con error: {err}", icon="⚠️")
 
 # ── top KPIs ─────────────────────────────────────────────────────────────────
 
@@ -691,8 +710,17 @@ with tab_ctrl:
         # Workflow
         st.markdown("**Análisis del día (Workflow)**")
         if workflow_alive:
-            st.warning(f"🟡 Corriendo (PID {workflow_pid})")
+            st.warning(f"🟡 Corriendo (PID {workflow_pid}) — actualizando cada 2 seg...")
         else:
+            # Banner si terminó hace menos de 5 minutos
+            if LAST_RUN.exists():
+                age_sec = time.time() - LAST_RUN.stat().st_mtime
+                if age_sec < 300 and last_run:
+                    if last_run.get("status") == "ok":
+                        fn = friendly_strategy_name(last_run.get("strategy_name", ""))
+                        st.success(f"✅ Análisis listo hace {int(age_sec/60)}m — **{fn}** · Podés iniciar el monitor")
+                    else:
+                        st.error(f"❌ El último análisis falló: {last_run.get('error', '')}")
             if st.button("▶️ Ejecutar análisis ahora", key="run_workflow"):
                 proc = subprocess.Popen(
                     [sys.executable, str(ROOT / "run_workflow.py"), "--no-claude"],
@@ -700,7 +728,8 @@ with tab_ctrl:
                     creationflags=subprocess.CREATE_NEW_CONSOLE,
                 )
                 PID_WORKFLOW.write_text(str(proc.pid))
-                st.info("Workflow iniciado — se abre una ventana de terminal.")
+                st.session_state.workflow_was_alive = True
+                st.rerun()
 
         st.divider()
 
@@ -775,5 +804,11 @@ with st.container():
 
 if auto:
     time.sleep(30)
+    st.cache_data.clear()
+    st.rerun()
+
+# Auto-refresh cada 2 seg mientras el workflow está corriendo
+if workflow_alive:
+    time.sleep(2)
     st.cache_data.clear()
     st.rerun()

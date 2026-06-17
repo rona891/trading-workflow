@@ -26,6 +26,19 @@ def load_config() -> dict:
         return json.load(f)
 
 
+def save_last_run(status: str, strategy_name: str = "", error: str = "") -> None:
+    payload = {
+        "timestamp": datetime.now().isoformat(),
+        "date": datetime.now().strftime("%Y-%m-%d"),
+        "status": status,
+        "strategy_name": strategy_name,
+        "error": error,
+    }
+    (ROOT / "last_run.json").write_text(
+        json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+
+
 def save_history(asset: str, timeframe: str, top_row, reason: str,
                  n_tested: int, n_passed: int) -> None:
     hist_dir = ROOT / "history"
@@ -159,6 +172,7 @@ def run(args):
         data = fetch_all(cfg["assets"], cfg["timeframes"], args.force_refresh)
 
     if not any(data.values()):
+        save_last_run("error", error="No se pudieron obtener datos de mercado")
         print("ERROR: No se pudieron obtener datos.")
         return 1
 
@@ -199,6 +213,7 @@ def run(args):
     print(f"  {len(results)} estrategias pasaron los filtros")
 
     if not results:
+        save_last_run("error", error="Ninguna estrategia pasó los filtros mínimos")
         print("  Ninguna estrategia pasó los filtros mínimos.")
         print("  Sugerencia: revisar config.json (min_win_rate, min_trades)")
         return 1
@@ -260,6 +275,7 @@ def run(args):
     else:
         print("No se copió al vault.")
 
+    save_last_run("ok", strategy_name=str(top_row.get("strategy", "")))
     print("\n=== WORKFLOW COMPLETADO ===")
     return 0
 
