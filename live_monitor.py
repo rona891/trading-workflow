@@ -38,7 +38,7 @@ from trade_logger import log_entry as tlog_entry, log_close as tlog_close
 PID_FILE = ROOT / "bot_monitor.pid"
 
 ARG_TZ = timezone(timedelta(hours=-3))
-POLL_SECONDS = 30  # 30 seconds
+POLL_SECONDS = 5  # 5 seconds
 TRADE_USDT = 190.0  # leave 10 USDT as buffer from 200 total
 MIN_BAR_LOOKBACK = 100  # bars to fetch for indicator calculation
 
