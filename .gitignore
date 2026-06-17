@@ -1,0 +1,23 @@
+# Credenciales — NUNCA subir
+.env
+
+# Cache de Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Datos de mercado cacheados (archivos grandes)
+data/
+
+# Archivos de runtime
+today_strategy.json
+trade_log.json
+bot_monitor.pid
+bot_workflow.pid
+
+# Logs
+logs/
+
+# Streamlit
+.streamlit/

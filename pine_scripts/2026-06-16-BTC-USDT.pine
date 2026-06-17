@@ -1,0 +1,65 @@
+//@version=5
+strategy("ema_cross_9_20+macd_cross_SL1.5_TP2.5", overlay=true, initial_capital=200,
+         default_qty_type=strategy.percent_of_equity, default_qty_value=100,
+         commission_type=strategy.commission.percent, commission_value=0.1)
+
+// ─── Inputs ──────────────────────────────────────────────────────────────────
+rsi_len     = input.int(14, "RSI Length")
+rsi_ob      = input.int(70,  "RSI Overbought")
+rsi_os      = input.int(30,  "RSI Oversold")
+ema_fast    = input.int(9,   "EMA Fast")
+ema_slow    = input.int(20,  "EMA Slow")
+ema_long    = input.int(50,  "EMA Long")
+macd_fast   = input.int(12,  "MACD Fast")
+macd_slow   = input.int(26,  "MACD Slow")
+macd_sig    = input.int(9,   "MACD Signal")
+bb_len      = input.int(20,  "BB Length")
+bb_mult     = input.float(2.0,"BB Multiplier")
+stoch_k     = input.int(14,  "Stoch K")
+stoch_d     = input.int(3,   "Stoch D")
+st_len      = input.int(10,  "Supertrend Length")
+st_mult     = input.float(3.0,"Supertrend Multiplier")
+sl_mult     = input.float(1.5, "Stop Loss ATR Multiplier")
+tp_mult     = input.float(2.5, "Take Profit ATR Multiplier")
+
+// ─── Indicators ──────────────────────────────────────────────────────────────
+rsi         = ta.rsi(close, rsi_len)
+[macd_line, signal_line, _] = ta.macd(close, macd_fast, macd_slow, macd_sig)
+ema_f       = ta.ema(close, ema_fast)
+ema_s       = ta.ema(close, ema_slow)
+ema_l       = ta.ema(close, ema_long)
+[bb_upper, bb_mid, bb_lower] = ta.bb(close, bb_len, bb_mult)
+atr         = ta.atr(14)
+stoch_k_val = ta.stoch(high, low, close, stoch_k)
+stoch_d_val = ta.sma(stoch_k_val, stoch_d)
+vwap_val    = ta.vwap(hlc3)
+[st_line, st_dir] = ta.supertrend(st_len, st_mult)
+
+// ─── Entry Conditions ────────────────────────────────────────────────────────
+ema_cross_9_20 = ta.crossover(ema_f, ema_s)
+macd_cross_up = ta.crossover(macd_line, signal_line)
+long_entry = ema_cross_9_20 and macd_cross_up
+
+// ─── Exit via SL/TP (ATR-based) ──────────────────────────────────────────────
+var float entry_price = na
+var float sl_price    = na
+var float tp_price    = na
+
+if long_entry
+    entry_price := close
+    sl_price    := close - atr * sl_mult
+    tp_price    := close + atr * tp_mult
+    strategy.entry("Long", strategy.long)
+
+if strategy.position_size > 0
+    strategy.exit("Exit Long", "Long", stop=sl_price, limit=tp_price)
+
+// ─── Plots ───────────────────────────────────────────────────────────────────
+plot(ema_f,  "EMA Fast",  color=color.new(color.blue, 0),  linewidth=1)
+plot(ema_s,  "EMA Slow",  color=color.new(color.orange, 0), linewidth=1)
+plot(vwap_val, "VWAP",   color=color.new(color.purple, 0), linewidth=1)
+plot(bb_upper, "BB Upper", color=color.new(color.gray, 50))
+plot(bb_lower, "BB Lower", color=color.new(color.gray, 50))
+
+plotshape(long_entry, title="Entry", location=location.belowbar,
+          color=color.new(color.green, 0), style=shape.triangleup, size=size.small)
