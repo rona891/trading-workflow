@@ -37,7 +37,7 @@
     "timezone": "America/Argentina/Buenos_Aires",
     "market_open_hour_arg": 3,
     "market_close_hour_arg": 15,
-    "poll_interval_seconds": 300,
+    "poll_interval_seconds": 30,
     "trade_usdt": 200,
     "days": [
       "Mon",

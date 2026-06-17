@@ -38,7 +38,7 @@ from trade_logger import log_entry as tlog_entry, log_close as tlog_close
 PID_FILE = ROOT / "bot_monitor.pid"
 
 ARG_TZ = timezone(timedelta(hours=-3))
-POLL_SECONDS = 300  # 5 minutes
+POLL_SECONDS = 30  # 30 seconds
 TRADE_USDT = 190.0  # leave 10 USDT as buffer from 200 total
 MIN_BAR_LOOKBACK = 100  # bars to fetch for indicator calculation
 
@@ -185,7 +185,8 @@ def run(dry_run: bool = False, ignore_hours: bool = False):
     elif ignore_hours:
         print("[IGNORE HOURS] Saltando verificación de horario — modo test")
 
-    print(f"\nMonitoreo activo — polling cada {POLL_SECONDS // 60} min")
+    poll_label = f"{POLL_SECONDS}s" if POLL_SECONDS < 60 else f"{POLL_SECONDS // 60} min"
+    print(f"\nMonitoreo activo — polling cada {poll_label}")
     print("Presioná Ctrl+C para detener\n")
 
     eod_notified = False
