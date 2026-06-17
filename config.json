@@ -1,22 +1,35 @@
 {
   "assets": {
-    "crypto": ["BTC/USDT", "ETH/USDT", "SOL/USDT"],
-    "stocks": ["SPY", "QQQ", "NVDA"],
+    "crypto": [
+      "BTC/USDT",
+      "ETH/USDT",
+      "SOL/USDT"
+    ],
+    "stocks": [
+      "SPY",
+      "QQQ",
+      "NVDA"
+    ],
     "forex": []
   },
-  "timeframes": ["5m", "15m", "1h", "4h"],
+  "timeframes": [
+    "5m",
+    "15m",
+    "1h",
+    "4h"
+  ],
   "backtest": {
     "lookback_days": 90,
     "validation_days": 30,
     "min_trades": 8,
-    "min_win_rate": 0.45,
-    "max_drawdown": 0.20,
+    "min_win_rate": 0.55,
+    "max_drawdown": 0.2,
     "initial_capital": 200
   },
   "ranking": {
     "weight_win_rate": 0.35,
-    "weight_profit_factor": 0.30,
-    "weight_sharpe": 0.20,
+    "weight_profit_factor": 0.3,
+    "weight_sharpe": 0.2,
     "weight_drawdown": 0.15,
     "top_n": 5
   },
@@ -25,8 +38,16 @@
     "market_open_hour_arg": 3,
     "market_close_hour_arg": 15,
     "poll_interval_seconds": 300,
-    "trade_usdt": 190,
-    "days": ["Mon", "Tue", "Wed", "Thu", "Fri"]
+    "trade_usdt": 200,
+    "days": [
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri"
+    ],
+    "force_asset": null,
+    "force_timeframe": null
   },
   "execution": {
     "testnet": true,

@@ -666,7 +666,7 @@ with tab_ctrl:
             c1, c2 = st.columns(2)
             if c1.button("🟢 Iniciar monitor", key="start_monitor"):
                 proc = subprocess.Popen(
-                    [sys.executable, str(ROOT / "live_monitor.py")],
+                    [sys.executable, str(ROOT / "live_monitor.py"), "--ignore-hours"],
                     cwd=str(ROOT),
                     creationflags=subprocess.CREATE_NEW_CONSOLE,
                 )
