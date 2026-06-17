@@ -21,16 +21,17 @@
   "backtest": {
     "lookback_days": 90,
     "validation_days": 30,
-    "min_trades": 8,
+    "min_trades": 20,
     "min_win_rate": 0.55,
     "max_drawdown": 0.2,
     "initial_capital": 200
   },
   "ranking": {
-    "weight_win_rate": 0.35,
-    "weight_profit_factor": 0.3,
-    "weight_sharpe": 0.2,
+    "weight_win_rate": 0.30,
+    "weight_profit_factor": 0.25,
+    "weight_sharpe": 0.20,
     "weight_drawdown": 0.15,
+    "weight_frequency": 0.10,
     "top_n": 5
   },
   "schedule": {

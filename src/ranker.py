@@ -17,13 +17,16 @@ def compute_scores(results: list[dict], weights: dict) -> pd.DataFrame:
     df["pf_norm"]     = (pf_max / pf_max.max()).clip(0, 1)
     df["sharpe_norm"] = (df["sharpe"] / df["sharpe"].max()).clip(0, 1) if df["sharpe"].max() > 0 else 0
     df["dd_score"]    = 1 - df["max_drawdown"]
+    # Frecuencia: normalizada contra el máximo de trades del set (más señales = mejor)
+    df["freq_norm"]   = (df["n_trades"] / df["n_trades"].max()).clip(0, 1) if df["n_trades"].max() > 0 else 0
 
     w = weights
     df["score"] = (
-        df["win_rate"]   * w["weight_win_rate"] +
-        df["pf_norm"]    * w["weight_profit_factor"] +
-        df["sharpe_norm"]* w["weight_sharpe"] +
-        df["dd_score"]   * w["weight_drawdown"]
+        df["win_rate"]    * w["weight_win_rate"] +
+        df["pf_norm"]     * w["weight_profit_factor"] +
+        df["sharpe_norm"] * w["weight_sharpe"] +
+        df["dd_score"]    * w["weight_drawdown"] +
+        df["freq_norm"]   * w.get("weight_frequency", 0.0)
     )
 
     return df.sort_values("score", ascending=False).reset_index(drop=True)
